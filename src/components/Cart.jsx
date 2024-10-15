@@ -1,51 +1,17 @@
-import React, { useState } from "react";
+import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Card from "react-bootstrap/Card";
 import Button from "react-bootstrap/Button";
-import { remove } from "../store/cartSlice";
+import { remove, incrementCount, decrementCount } from "../store/cartSlice";
 import { Link } from "react-router-dom";
 
 const Cart = () => {
   const dispatch = useDispatch();
   const products = useSelector((state) => state.cart);
 
-  const [productCount, setProductCount] = useState(
-    products.reduce((counts, product) => {
-      counts[product.id] = 1; 
-      return counts;
-    }, {})
-  );
-
-  const increaseCount = (productId) => {
-    setProductCount((prevCounts) => ({
-      ...prevCounts,
-      [productId]: prevCounts[productId] + 1,
-    }));
-  };
-
-  const decreaseCount = (productId) => {
-    if (productCount[productId] > 1) {
-      setProductCount((prevCounts) => ({
-        ...prevCounts,
-        [productId]: prevCounts[productId] - 1,
-      }));
-    } else {
-      removeProduct(productId);
-    }
-  };
-
-  const removeProduct = (id) => {
-    dispatch(remove(id));
-    setProductCount((prevCounts) => {
-      const newCounts = { ...prevCounts };
-      delete newCounts[id];
-      return newCounts;
-    });
-  };
-
   const calculateTotalPrice = () => {
     return products.reduce((total, product) => {
-      return total + product.price * productCount[product.id];
+      return total + product.price * product.count;
     }, 0);
   };
 
@@ -105,18 +71,18 @@ const Cart = () => {
                     </span>
                   </Card.Text>
                   <Card.Text className="card-text">
-                    Subtotal: $ {(product.price * productCount[product.id]).toFixed(2)}
+                    Subtotal: $ {(product.price * product.count).toFixed(2)}
                   </Card.Text>
                   <div className="InDe d-flex align-items-center justify-content-center mb-2">
-                    <Button variant="dark" onClick={() => decreaseCount(product.id)}>
+                    <Button variant="dark" onClick={() => dispatch(decrementCount(product.id))}>
                       -
                     </Button>
-                    <span className="mx-2">{productCount[product.id]}</span>
-                    <Button variant="dark" onClick={() => increaseCount(product.id)}>
+                    <span className="mx-2">{product.count}</span>
+                    <Button variant="dark" onClick={() => dispatch(incrementCount(product.id))}>
                       +
                     </Button>
                   </div>
-                  <Button variant="dark" onClick={() => removeProduct(product.id)}>
+                  <Button variant="dark" onClick={() => dispatch(remove(product.id))}>
                     Remove Item
                   </Button>
                 </Card.Body>
